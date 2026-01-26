@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { CheckCircle, Circle, AlertCircle, Zap } from 'lucide-react';
+import AgentGallery from './components/AgentGallery'
 
 export default function EpicUniverseMissionBrief() {
   const [selectedAgent, setSelectedAgent] = useState(null);
@@ -221,8 +222,8 @@ export default function EpicUniverseMissionBrief() {
                 </div>
                 
                 <div className="flex items-start gap-6 mb-4">
-                  <div className="w-24 h-32 bg-gray-300 border-3 border-gray-500 flex items-center justify-center text-5xl">
-                    📸
+                  <div className="w-24 h-32">
+                    <AgentGallery agentId={selectedAgent} thumbWidth={120} />
                   </div>
                   <div className="flex-1">
                     <div className="text-xs text-red-600 font-bold tracking-widest mb-2">OPERATIVE DOSSIER</div>
