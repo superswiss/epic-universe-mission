@@ -23,6 +23,7 @@ const IMAGE_BASES = {
 export default function AgentGallery({ agentId, thumbWidth }) {
   const bases = IMAGE_BASES[agentId] || [];
   const images = findImagesFor(bases);
+  const size = thumbWidth || 48;
 
   if (!agentId || images.length === 0) {
     return (
@@ -34,12 +35,13 @@ export default function AgentGallery({ agentId, thumbWidth }) {
 
   if (thumbWidth) {
     return (
-      <img
-        src={images[0]}
-        alt={agentId}
-        width={thumbWidth}
-        style={{ objectFit: 'cover', width: '100%', height: '100%' }}
-      />
+      <div style={{ width: size, height: size, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+        <img
+          src={images[0]}
+          alt={agentId}
+          style={{ objectFit: 'cover', width: size, height: size, borderRadius: 6 }}
+        />
+      </div>
     );
   }
 

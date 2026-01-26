@@ -73,6 +73,30 @@ export default function EpicUniverseMissionBrief() {
 
   const agent = agents.find(a => a.id === selectedAgent);
   const [sheetData, setSheetData] = useState(null);
+  const STORAGE_KEY = 'epic_mission_state_v1';
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const s = JSON.parse(raw);
+        if (s.preferences) setPreferences(s.preferences);
+        if (s.completedMissions) setCompletedMissions(s.completedMissions);
+        if (s.arrivalChecklist) setArrivalChecklist(s.arrivalChecklist);
+      }
+    } catch (e) {
+      console.warn('Failed to load saved state', e);
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      const toSave = { preferences, completedMissions, arrivalChecklist, savedAt: Date.now() };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+    } catch (e) {
+      console.warn('Failed to save state', e);
+    }
+  }, [preferences, completedMissions, arrivalChecklist]);
 
   useEffect(() => {
     const csvUrl = import.meta.env.VITE_SHEET_CSV;
@@ -149,8 +173,8 @@ export default function EpicUniverseMissionBrief() {
                       <div className="absolute top-0 right-0 w-12 h-8 bg-amber-200" style={{ borderLeft: '3px solid #8B4513', borderBottom: '3px solid #8B4513' }}></div>
                       
                       <div className="p-6">
-                        <div className="aspect-square bg-gray-300 border-2 border-gray-400 mb-4 overflow-hidden">
-                          <AgentGallery agentId={a.id} thumbWidth={120} />
+                        <div className="aspect-square bg-gray-300 border-2 border-gray-400 mb-4 flex items-center justify-center">
+                          <AgentGallery agentId={a.id} thumbWidth={48} />
                         </div>
                         <div className="text-sm font-bold text-amber-900 mb-1">{a.name}</div>
                         <div className="text-xs text-amber-800">{a.location}</div>
@@ -522,6 +546,64 @@ export default function EpicUniverseMissionBrief() {
             </div>
           )}
         </div>
+      </div>
+      {/* Export / Email */}
+      <div className="max-w-7xl mx-auto px-8 py-6">
+        <div className="mt-8 p-4" style={{ backgroundColor: '#FFF', border: '2px solid #8B4513' }}>
+          <ExportControls
+            agents={agents}
+            preferences={preferences}
+            completedMissions={completedMissions}
+            arrivalChecklist={arrivalChecklist}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ExportControls({ agents, preferences, completedMissions, arrivalChecklist }) {
+  const buildCsv = () => {
+    const header = ['agentId', 'name', 'location', 'completedMissions', 'arrivalChecklist', 'rides', 'arrival', 'dinner', 'otherRide', 'otherDinner'];
+    const rows = [header];
+    agents.forEach(a => {
+      const comp = Object.keys(completedMissions || {}).filter(k => k.startsWith(`${a.id}-`)).filter(k => completedMissions[k]).map(k => k.split('-')[1]).join(';');
+      const arrival = Object.keys(arrivalChecklist || {}).filter(k => k.startsWith(`${a.id}-`)).filter(k => arrivalChecklist[k]).map(k => k.split('-')[1]).join(';');
+      const prefs = (preferences && preferences[a.id]) ? preferences[a.id] : {};
+      const rides = (prefs.rides || []).join(';');
+      const arrivalPref = prefs.arrival || '';
+      const dinner = prefs.dinner || '';
+      const otherRide = prefs.otherRide || '';
+      const otherDinner = prefs.otherDinner || '';
+      rows.push([a.id, a.name, a.location, comp, arrival, rides, arrivalPref, dinner, otherRide, otherDinner]);
+    });
+    const csv = rows.map(r => r.map(c => '"' + String(c || '').replace(/"/g, '""') + '"').join(',')).join('\n');
+    return csv;
+  };
+
+  const exportCsvAndEmail = () => {
+    try {
+      const csv = buildCsv();
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'epic-universe-mission.csv'; document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+
+      const subject = encodeURIComponent('Operation Epic Universe - Preferences CSV');
+      const body = encodeURIComponent('Attached CSV exported. If the mail client did not attach the file, paste the CSV below:\n\n' + csv);
+      window.location.href = `mailto:?subject=${subject}&body=${body}`;
+    } catch (e) {
+      console.error('Export failed', e);
+      alert('Export failed: ' + e.message);
+    }
+  };
+
+  return (
+    <div>
+      <div className="flex items-center gap-4">
+        <button onClick={exportCsvAndEmail} className="px-4 py-2 bg-amber-900 text-white font-bold">Export CSV & Draft Email</button>
+        <div className="text-sm text-amber-800">Selections are saved to your browser automatically.</div>
       </div>
     </div>
   );

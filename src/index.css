@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* small utility to keep checkbox items stacked */
+.stack-vertical > * {
+  display: block;
+}
+
+/* Minimal fallback utilities (only a small subset used by the app) */
+.flex { display: flex; }
+.items-center { align-items: center; }
+.items-start { align-items: flex-start; }
+.w-full { width: 100%; }
+.gap-3 { gap: 0.75rem; }
+.gap-4 { gap: 1rem; }
+.p-3 { padding: 0.75rem; }
+.p-4 { padding: 1rem; }
+.mb-4 { margin-bottom: 1rem; }
+.space-y-3 > * + * { margin-top: 0.75rem; }
+.space-y-6 > * + * { margin-top: 1.5rem; }
+.grid { display: grid; }
+.grid.grid-cols-1 { grid-template-columns: 1fr; }
+.transition-colors { transition: background-color 150ms ease; }
+.cursor-pointer { cursor: pointer; }
+
+/* Ensure labels and buttons inside grid stack and fill width */
+.grid > label, .space-y-3 > label, .space-y-3 > button { display: block; width: 100%; }
+
