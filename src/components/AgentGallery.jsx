@@ -1,17 +1,28 @@
 import React from 'react';
 
-const IMAGE_MAP = {
-  karkian: ['drkarkian_1-83b9af25.png', 'drkarkian_2-357e6861.png'],
-  moose: ['moose_1-782e3ed6.png', 'moose_2-3a77b479.png'],
-  tbone: ['tbone_1-c0b2789d.png', 'tbone_2-cfb24b8d.png'],
-  manishbee: ['manish_1-de7f8fb0.png', 'manish_2-79b80f5c.png'],
-  superswiss: ['superswiss-139de856.png']
+const modules = import.meta.glob('/assets/*', { eager: true, as: 'url' });
+
+function findImagesFor(baseNames) {
+  const urls = [];
+  const keys = Object.keys(modules);
+  for (const b of baseNames) {
+    const matched = keys.find(k => k.includes(b));
+    if (matched) urls.push(modules[matched]);
+  }
+  return urls;
+}
+
+const IMAGE_BASES = {
+  karkian: ['drkarkian_1', 'drkarkian_2'],
+  moose: ['moose_1', 'moose_2'],
+  tbone: ['tbone_1', 'tbone_2'],
+  manishbee: ['manish_1', 'manish_2'],
+  superswiss: ['superswiss']
 };
 
 export default function AgentGallery({ agentId, thumbWidth }) {
-  const base = (import.meta.env.BASE_URL || '/') ;
-  const prefix = `${base}assets/`;
-  const images = (agentId && IMAGE_MAP[agentId]) ? IMAGE_MAP[agentId] : [];
+  const bases = IMAGE_BASES[agentId] || [];
+  const images = findImagesFor(bases);
 
   if (!agentId || images.length === 0) {
     return (
@@ -21,12 +32,10 @@ export default function AgentGallery({ agentId, thumbWidth }) {
     );
   }
 
-  const src = `${prefix}${images[0]}`;
-
   if (thumbWidth) {
     return (
       <img
-        src={src}
+        src={images[0]}
         alt={agentId}
         width={thumbWidth}
         style={{ objectFit: 'cover', width: '100%', height: '100%' }}
@@ -36,8 +45,8 @@ export default function AgentGallery({ agentId, thumbWidth }) {
 
   return (
     <div className="flex gap-2 items-center">
-      {images.map((f, i) => (
-        <img key={i} src={`${prefix}${f}`} alt={`${agentId}-${i}`} style={{ width: 120, height: 120, objectFit: 'cover' }} />
+      {images.map((url, i) => (
+        <img key={i} src={url} alt={`${agentId}-${i}`} style={{ width: 120, height: 120, objectFit: 'cover' }} />
       ))}
     </div>
   );
