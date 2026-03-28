@@ -1,12 +1,501 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Operation Epic Universe - Mission Briefing</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
-</html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trotwood Park Treasure Map</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pirata+One&family=UnifrakturMaguntia&family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cinzel', serif;
+            background: radial-gradient(ellipse at center, #1a0f0a 0%, #0a0503 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .map-container {
+            position: relative;
+            max-width: 1000px;
+            width: 100%;
+            background: 
+                radial-gradient(ellipse at 20% 30%, rgba(255, 235, 205, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 70%, rgba(139, 69, 19, 0.15) 0%, transparent 50%),
+                linear-gradient(135deg, #e8d5b7 0%, #d4c4a8 50%, #c9b896 100%);
+            padding: 50px;
+            border: 12px solid #3d2817;
+            box-shadow: 
+                0 0 60px rgba(0, 0, 0, 0.9),
+                inset 0 0 100px rgba(61, 40, 23, 0.15),
+                inset 0 0 200px rgba(255, 235, 205, 0.1);
+            transform: rotate(-0.5deg);
+            animation: paperFloat 6s ease-in-out infinite;
+        }
+
+        @keyframes paperFloat {
+            0%, 100% { transform: rotate(-0.5deg) translateY(0); }
+            50% { transform: rotate(0.5deg) translateY(-5px); }
+        }
+
+        .map-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence baseFrequency='0.9' numOctaves='4' /%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E");
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        .stain {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(ellipse, rgba(139, 69, 19, 0.15) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .stain1 { width: 120px; height: 150px; top: 15%; left: 8%; }
+        .stain2 { width: 90px; height: 90px; top: 70%; right: 12%; }
+        .stain3 { width: 60px; height: 80px; bottom: 20%; left: 15%; }
+
+        h1 {
+            text-align: center;
+            font-size: 3.5em;
+            color: #2a1810;
+            text-shadow: 
+                3px 3px 0 rgba(139, 69, 19, 0.3),
+                6px 6px 15px rgba(0, 0, 0, 0.2);
+            margin-bottom: 5px;
+            font-family: 'UnifrakturMaguntia', cursive;
+            letter-spacing: 3px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 1.1em;
+            color: #5a3825;
+            margin-bottom: 40px;
+            font-style: italic;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: 400;
+        }
+
+        .map-svg-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 4/3;
+            margin-bottom: 30px;
+        }
+
+        svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+        }
+
+        .compass-rose {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            width: 12px;
+            height: 12px;
+            z-index: 20;
+            animation: compassSpin 20s linear infinite;
+        }
+
+        @keyframes compassSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .treasure-x {
+            animation: treasurePulse 2.5s ease-in-out infinite;
+            filter: drop-shadow(0 0 8px #8b0000);
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .treasure-x:hover {
+            transform: scale(1.2);
+        }
+
+        @keyframes treasurePulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .legend {
+            background: linear-gradient(135deg, rgba(232, 213, 183, 0.95) 0%, rgba(212, 196, 168, 0.95) 100%);
+            border: 3px double #5a3825;
+            padding: 20px 25px;
+            margin-top: 30px;
+            position: relative;
+            box-shadow: 
+                inset 0 0 20px rgba(90, 56, 37, 0.1),
+                0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .legend::before,
+        .legend::after {
+            content: '⚓';
+            position: absolute;
+            font-size: 24px;
+            color: #5a3825;
+            opacity: 0.3;
+        }
+
+        .legend::before { top: 10px; left: 15px; }
+        .legend::after { bottom: 10px; right: 15px; }
+
+        .legend h3 {
+            color: #2a1810;
+            margin-bottom: 15px;
+            font-family: 'Pirata One', cursive;
+            font-size: 1.8em;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            color: #3d2817;
+            font-size: 0.95em;
+        }
+
+        .legend-icon {
+            width: 30px;
+            margin-right: 12px;
+            text-align: center;
+            font-size: 1.2em;
+        }
+
+        .coordinates {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #5a3825;
+            font-style: italic;
+            letter-spacing: 1px;
+            font-family: 'Cinzel', serif;
+        }
+
+        .corner-decoration {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            opacity: 0.4;
+        }
+
+        .corner-decoration.top-left {
+            top: 20px;
+            left: 20px;
+            border-top: 3px solid #5a3825;
+            border-left: 3px solid #5a3825;
+        }
+
+        .corner-decoration.top-right {
+            top: 20px;
+            right: 20px;
+            border-top: 3px solid #5a3825;
+            border-right: 3px solid #5a3825;
+        }
+
+        .corner-decoration.bottom-left {
+            bottom: 20px;
+            left: 20px;
+            border-bottom: 3px solid #5a3825;
+            border-left: 3px solid #5a3825;
+        }
+
+        .corner-decoration.bottom-right {
+            bottom: 20px;
+            right: 20px;
+            border-bottom: 3px solid #5a3825;
+            border-right: 3px solid #5a3825;
+        }
+
+        .path-line {
+            stroke-dasharray: 8, 4;
+            animation: dashMove 30s linear infinite;
+        }
+
+        @keyframes dashMove {
+            to { stroke-dashoffset: -1000; }
+        }
+    </style>
+</head>
+<body>
+    <div class="map-container">
+        <div class="stain stain1"></div>
+        <div class="stain stain2"></div>
+        <div class="stain stain3"></div>
+        
+        <div class="corner-decoration top-left"></div>
+        <div class="corner-decoration top-right"></div>
+        <div class="corner-decoration bottom-left"></div>
+        <div class="corner-decoration bottom-right"></div>
+        
+        <h1>⚓ Carte au Trésor ⚓</h1>
+        <div class="subtitle">Trotwood Park • Winter Springs, Florida</div>
+        
+        <div class="map-svg-container">
+            <svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+                <!-- Background texture -->
+                <defs>
+                    <pattern id="mapTexture" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+                        <circle cx="2" cy="2" r="0.5" fill="#8b7355" opacity="0.1"/>
+                    </pattern>
+                    
+                    <filter id="roughPaper">
+                        <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="5" result="noise"/>
+                        <feDiffuseLighting in="noise" lighting-color="#d4c4a8" surfaceScale="2">
+                            <feDistantLight azimuth="45" elevation="60"/>
+                        </feDiffuseLighting>
+                    </filter>
+                </defs>
+
+                <!-- Map border -->
+                <rect x="20" y="20" width="760" height="560" 
+                      fill="url(#mapTexture)" 
+                      stroke="#5a3825" 
+                      stroke-width="3" 
+                      stroke-dasharray="5,3"
+                      rx="5"/>
+
+                <!-- Main park area (organic shape) -->
+                <path d="M 150 200 Q 200 150 280 160 Q 350 165 400 140 Q 480 120 560 150 
+                         Q 620 170 650 220 Q 670 280 660 350 Q 650 420 600 460 
+                         Q 530 500 450 490 Q 370 485 300 470 Q 220 450 170 400 
+                         Q 130 350 140 280 Q 145 230 150 200 Z"
+                      fill="#b8d4a8" 
+                      stroke="#5a7040" 
+                      stroke-width="2.5"
+                      opacity="0.7"/>
+
+                <!-- Water feature / pond -->
+                <ellipse cx="350" cy="280" rx="70" ry="50" 
+                         fill="#7eb3d4" 
+                         stroke="#4a7090" 
+                         stroke-width="2"
+                         opacity="0.8"/>
+                
+                <!-- Water ripples -->
+                <ellipse cx="350" cy="280" rx="60" ry="40" 
+                         fill="none" 
+                         stroke="#4a7090" 
+                         stroke-width="1"
+                         opacity="0.5"/>
+                <ellipse cx="350" cy="280" rx="50" ry="30" 
+                         fill="none" 
+                         stroke="#4a7090" 
+                         stroke-width="1"
+                         opacity="0.3"/>
+
+                <!-- Trees (various sizes) -->
+                <g class="trees">
+                    <!-- Tree 1 -->
+                    <circle cx="250" cy="250" r="25" fill="#3d5a2e" opacity="0.7"/>
+                    <circle cx="240" cy="240" r="20" fill="#4a6b38" opacity="0.6"/>
+                    <circle cx="260" cy="245" r="18" fill="#5a7c48" opacity="0.6"/>
+                    <rect x="247" y="270" width="6" height="20" fill="#3d2817"/>
+                    
+                    <!-- Tree 2 -->
+                    <circle cx="480" cy="320" r="30" fill="#3d5a2e" opacity="0.7"/>
+                    <circle cx="470" cy="310" r="24" fill="#4a6b38" opacity="0.6"/>
+                    <circle cx="492" cy="315" r="22" fill="#5a7c48" opacity="0.6"/>
+                    <rect x="476" y="345" width="8" height="25" fill="#3d2817"/>
+                    
+                    <!-- Tree 3 -->
+                    <circle cx="560" cy="380" r="22" fill="#3d5a2e" opacity="0.7"/>
+                    <circle cx="552" cy="372" r="18" fill="#4a6b38" opacity="0.6"/>
+                    <circle cx="570" cy="376" r="16" fill="#5a7c48" opacity="0.6"/>
+                    <rect x="557" y="396" width="6" height="18" fill="#3d2817"/>
+
+                    <!-- Tree 4 -->
+                    <circle cx="200" cy="350" r="28" fill="#3d5a2e" opacity="0.7"/>
+                    <circle cx="190" cy="342" r="22" fill="#4a6b38" opacity="0.6"/>
+                    <circle cx="212" cy="346" r="20" fill="#5a7c48" opacity="0.6"/>
+                    <rect x="196" y="373" width="8" height="23" fill="#3d2817"/>
+                </g>
+
+                <!-- Playground equipment -->
+                <g class="playground">
+                    <!-- Swing set -->
+                    <line x1="420" y1="380" x2="420" y2="410" stroke="#3d2817" stroke-width="3"/>
+                    <line x1="450" y1="380" x2="450" y2="410" stroke="#3d2817" stroke-width="3"/>
+                    <line x1="410" y1="380" x2="460" y2="380" stroke="#3d2817" stroke-width="4"/>
+                    <rect x="415" y="405" width="10" height="15" fill="#c85a54" rx="2"/>
+                    <rect x="445" y="405" width="10" height="15" fill="#c85a54" rx="2"/>
+                    
+                    <!-- Slide -->
+                    <path d="M 520 390 L 520 410 L 560 420" 
+                          fill="none" 
+                          stroke="#6a8cc8" 
+                          stroke-width="8"
+                          stroke-linecap="round"/>
+                    <rect x="515" y="370" width="12" height="20" fill="#3d2817"/>
+                </g>
+
+                <!-- Pathways -->
+                <path class="path-line" d="M 100 300 Q 250 320 400 280 T 700 320" 
+                      fill="none" 
+                      stroke="#8b7355" 
+                      stroke-width="4"
+                      opacity="0.6"/>
+                
+                <path class="path-line" d="M 300 100 Q 350 200 380 280 Q 400 340 380 450" 
+                      fill="none" 
+                      stroke="#8b7355" 
+                      stroke-width="4"
+                      opacity="0.6"/>
+
+                <!-- Benches -->
+                <g class="bench" transform="translate(280, 360)">
+                    <rect x="0" y="0" width="30" height="5" fill="#3d2817" rx="1"/>
+                    <rect x="2" y="-8" width="26" height="5" fill="#5a4028" rx="1"/>
+                    <rect x="4" y="-2" width="2" height="10" fill="#3d2817"/>
+                    <rect x="24" y="-2" width="2" height="10" fill="#3d2817"/>
+                </g>
+
+                <!-- Flowers/bushes -->
+                <circle cx="320" cy="420" r="8" fill="#d4698f" opacity="0.8"/>
+                <circle cx="328" cy="418" r="6" fill="#e87aa0" opacity="0.8"/>
+                <circle cx="315" cy="425" r="7" fill="#c85a7f" opacity="0.8"/>
+
+                <circle cx="490" cy="240" r="10" fill="#f4c542" opacity="0.8"/>
+                <circle cx="500" cy="238" r="8" fill="#f7d870" opacity="0.8"/>
+                <circle cx="485" cy="247" r="7" fill="#e0b030" opacity="0.8"/>
+
+                <!-- TREASURE X -->
+                <g class="treasure-x" transform="translate(380, 280)">
+                    <!-- Glow effect -->
+                    <circle r="35" fill="#ffd700" opacity="0.2"/>
+                    <circle r="25" fill="#ffd700" opacity="0.3"/>
+                    
+                    <!-- X mark -->
+                    <line x1="-20" y1="-20" x2="20" y2="20" 
+                          stroke="#8b0000" 
+                          stroke-width="8" 
+                          stroke-linecap="round"/>
+                    <line x1="20" y1="-20" x2="-20" y2="20" 
+                          stroke="#8b0000" 
+                          stroke-width="8" 
+                          stroke-linecap="round"/>
+                    <line x1="-20" y1="-20" x2="20" y2="20" 
+                          stroke="#ff0000" 
+                          stroke-width="5" 
+                          stroke-linecap="round"/>
+                    <line x1="20" y1="-20" x2="-20" y2="20" 
+                          stroke="#ff0000" 
+                          stroke-width="5" 
+                          stroke-linecap="round"/>
+                    
+                    <!-- Sparkle effects -->
+                    <circle cx="-25" cy="0" r="3" fill="#ffd700">
+                        <animate attributeName="opacity" values="1;0.3;1" dur="2s" repeatCount="indefinite"/>
+                    </circle>
+                    <circle cx="25" cy="0" r="3" fill="#ffd700">
+                        <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite"/>
+                    </circle>
+                    <circle cx="0" cy="-25" r="3" fill="#ffd700">
+                        <animate attributeName="opacity" values="1;0.3;1" dur="2s" repeatCount="indefinite" begin="0.5s"/>
+                    </circle>
+                    <circle cx="0" cy="25" r="3" fill="#ffd700">
+                        <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" begin="0.5s"/>
+                    </circle>
+                </g>
+
+                <!-- Map labels -->
+                <text x="350" y="290" font-family="Pirata One" font-size="16" fill="#2a5068" text-anchor="middle">
+                    Mystic Pool
+                </text>
+                
+                <text x="470" y="355" font-family="Pirata One" font-size="14" fill="#3d2817" text-anchor="middle">
+                    Play Fields
+                </text>
+
+                <text x="230" y="285" font-family="Pirata One" font-size="14" fill="#3d5a2e" text-anchor="middle">
+                    Ancient Grove
+                </text>
+            </svg>
+
+            <!-- Compass Rose SVG -->
+            <svg class="compass-rose" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="48" fill="#e8d5b7" stroke="#3d2817" stroke-width="2"/>
+                <circle cx="50" cy="50" r="42" fill="none" stroke="#5a3825" stroke-width="1"/>
+                
+                <!-- North pointer (red) -->
+                <path d="M 50 10 L 45 45 L 50 40 L 55 45 Z" fill="#c85a54" stroke="#3d2817" stroke-width="1"/>
+                
+                <!-- South pointer -->
+                <path d="M 50 90 L 45 55 L 50 60 L 55 55 Z" fill="#4a4a4a" stroke="#3d2817" stroke-width="1"/>
+                
+                <!-- East pointer -->
+                <path d="M 90 50 L 55 45 L 60 50 L 55 55 Z" fill="#4a4a4a" stroke="#3d2817" stroke-width="1"/>
+                
+                <!-- West pointer -->
+                <path d="M 10 50 L 45 45 L 40 50 L 45 55 Z" fill="#4a4a4a" stroke="#3d2817" stroke-width="1"/>
+                
+                <!-- Direction labels -->
+                <text x="50" y="8" font-family="Cinzel" font-size="12" font-weight="bold" fill="#c85a54" text-anchor="middle">N</text>
+                <text x="50" y="98" font-family="Cinzel" font-size="10" fill="#3d2817" text-anchor="middle">S</text>
+                <text x="96" y="54" font-family="Cinzel" font-size="10" fill="#3d2817" text-anchor="middle">E</text>
+                <text x="4" y="54" font-family="Cinzel" font-size="10" fill="#3d2817" text-anchor="middle">W</text>
+                
+                <!-- Center ornament -->
+                <circle cx="50" cy="50" r="6" fill="#3d2817"/>
+                <circle cx="50" cy="50" r="3" fill="#ffd700"/>
+            </svg>
+        </div>
+
+        <div class="legend">
+            <h3>⚔ Map Legend ⚔</h3>
+            <div class="legend-item">
+                <div class="legend-icon">✗</div>
+                <div>Treasure Marker — The bounty awaits here</div>
+            </div>
+            <div class="legend-item">
+                <div class="legend-icon">🌳</div>
+                <div>Ancient Grove — Shaded gathering place</div>
+            </div>
+            <div class="legend-item">
+                <div class="legend-icon">💧</div>
+                <div>Mystic Pool — Waters of reflection</div>
+            </div>
+            <div class="legend-item">
+                <div class="legend-icon">⚓</div>
+                <div>Play Fields — Adventurer's training grounds</div>
+            </div>
+        </div>
+
+        <div class="coordinates">
+            28° 41' 52" N • 81° 17' 54" W<br>
+            <em>"Where the X marks, fortune favors the bold..."</em>
+            <br><br>
+            <button id="track-button" onclick="toggleTracking()">📍 Track My Location</button>
+        </div>
+    </div>
+
+    <script>
+        // Trotwood Park coordinates (treasure location)
+        const TREASURE_LAT = 28.6978;
+        const TREASURE_LNG = -81.2983;
+        
+        // Approximate SVG 
